@@ -11,12 +11,15 @@ def fetch_contacts(url):
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, 'html.parser')
+
+        text_elements = soup.find_all(text=True)
+        text = ' '.join(text_elements)
         
         email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
         cellphone_pattern = r'\(?\b[1-9]{2}\)?[-.\s]?[9]{0,1}\s?[0-9]{4}[-.\s]?[0-9]{4}\b'
 
-        emails = re.findall(email_pattern, soup.get_text())
-        cellphones = re.findall(cellphone_pattern, soup.get_text())
+        emails = re.findall(email_pattern, text)
+        cellphones = re.findall(cellphone_pattern, text)
 
         # Remover duplicatas
         emails = list(set(emails))
@@ -36,7 +39,7 @@ def fetch_contacts(url):
         }
 
 if __name__ == "__main__":
-    urls = ['https://cortezeimoveis.com.br/', 'https://ribeiroimoveis.com.br/', 'https://www.maiaimoveissjp.com.br/', 'https://venturiimoveis.com.br/', 'https://www.roccoimoveis.com.br/', 'https://alegriaimobiliaria.com.br/', 'https://www.suelifernandes.com/']
+    urls = ['https://cortezeimoveis.com.br/', 'https://ribeiroimoveis.com.br/', 'https://www.maiaimoveissjp.com.br/', 'https://venturiimoveis.com.br/', 'https://www.roccoimoveis.com.br/', 'https://alegriaimobiliaria.com.br/', 'https://www.suelifernandes.com/', 'https://www.freitasgodoi.com.br/imoveis/a-venda/terreno/curitiba']
     contacts_list = []
 
     for url in urls:
