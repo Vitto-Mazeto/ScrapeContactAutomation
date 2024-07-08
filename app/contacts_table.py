@@ -28,7 +28,7 @@ def run():
             selected_contacts = edited_df[edited_df['Selecionar']].to_dict(orient='records')
             for contact in selected_contacts:
                 st.write(f"Enviando mensagem para {contact['Email']} e {contact['Celular']}")
-                update_message_count(db_path, contact['ID'])
+                update_message_count(db_path, contact['Site'])
                 df.loc[df['Email'] == contact['Email'], 'Mensagens Enviadas'] += 1
     else:
         st.write("Sem contatos até o momento.")

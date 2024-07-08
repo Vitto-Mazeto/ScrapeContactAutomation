@@ -38,13 +38,13 @@ def fetch_all_contacts(db_path):
     conn.close()
     return rows
 
-def update_message_count(db_path, contact_id):
+def update_message_count(db_path, site):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute('''
     UPDATE contacts
     SET mensagens_enviadas = mensagens_enviadas + 1
-    WHERE id = ?
-    ''', (contact_id,))
+    WHERE site = ?
+    ''', (site,))
     conn.commit()
     conn.close()
