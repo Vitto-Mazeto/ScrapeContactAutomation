@@ -26,13 +26,17 @@ def run():
     if selected_city != "Todas":
         df = df[df['Cidade'] == selected_city]
 
+    # Inicializa uma sessão de estado para o DataFrame
+    if 'df' not in st.session_state:
+        st.session_state.df = df
+
     # Botão para selecionar todos os contatos
     if st.button("Selecionar Todos"):
-        df['Selecionar'] = True
+        st.session_state.df['Selecionar'] = True
 
     # Botão para selecionar todos os contatos sem mensagens enviadas
     if st.button("Selecionar Todos Sem Mensagens Enviadas"):
-        df.loc[df['Mensagens Enviadas'] == 0, 'Selecionar'] = True
+        st.session_state.df['Selecionar'] = st.session_state.df['Mensagens Enviadas'] == 0
 
     config = {
         "Selecionar": st.column_config.CheckboxColumn(
@@ -42,11 +46,13 @@ def run():
         )
     }
 
-    edited_df = st.data_editor(df, column_config=config, hide_index=True)
+    edited_df = st.data_editor(st.session_state.df, column_config=config, hide_index=True)
 
     if st.button("Disparar Mensagem"):
         selected_contacts = edited_df[edited_df['Selecionar']].to_dict(orient='records')
-        for contact in selected_contacts:
-            st.write(f"Enviando mensagem para {contact['Email']} e {contact['Celular']}")
-            update_message_count(db_path, contact['Site'])
-            df.loc[df['Email'] == contact['Email'], 'Mensagens Enviadas'] += 1
+        if not selected_contacts:
+            st.write("Nenhum contato selecionado.")
+        else:
+            for contact in selected_contacts:
+                st.write(f"Enviando mensagem para {contact['Email']} e {contact['Celular']}")
+                update_message_count(db_path, contact['Site'])
