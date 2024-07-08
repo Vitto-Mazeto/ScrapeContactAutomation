@@ -1,4 +1,16 @@
+import os
 import streamlit as st
+from utils import create_database
+
+# Caminho do banco de dados
+db_path = os.path.join('data', 'contacts.sqlite')
+
+# Cria a pasta data se não existir
+if not os.path.exists('data'):
+    os.makedirs('data')
+
+# Cria o banco de dados se não existir
+create_database(db_path)
 
 def search_contacts_page():
     import search_contacts
