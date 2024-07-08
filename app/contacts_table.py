@@ -18,6 +18,22 @@ def run():
     df = pd.DataFrame(contacts, columns=["ID", "Site", "Celular", "Email", "Cidade", "Mensagens Enviadas"])
     df['Selecionar'] = False
 
+    # Dropdown para selecionar cidade
+    cities = df['Cidade'].unique().tolist()
+    selected_city = st.selectbox("Selecione a cidade", options=["Todas"] + cities)
+
+    # Filtra os contatos com base na cidade selecionada
+    if selected_city != "Todas":
+        df = df[df['Cidade'] == selected_city]
+
+    # Botão para selecionar todos os contatos
+    if st.button("Selecionar Todos"):
+        df['Selecionar'] = True
+
+    # Botão para selecionar todos os contatos sem mensagens enviadas
+    if st.button("Selecionar Todos Sem Mensagens Enviadas"):
+        df.loc[df['Mensagens Enviadas'] == 0, 'Selecionar'] = True
+
     config = {
         "Selecionar": st.column_config.CheckboxColumn(
             "Selecionar",
