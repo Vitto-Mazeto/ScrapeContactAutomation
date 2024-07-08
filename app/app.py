@@ -25,7 +25,8 @@ def create_database(db_path):
         site TEXT,
         celular TEXT,
         email TEXT,
-        city TEXT
+        city TEXT,
+        mensagens_enviadas INTEGER DEFAULT 0
     )
     ''')
     conn.commit()
@@ -39,8 +40,8 @@ def save_contacts_to_db(db_path, contacts_list, city):
         for celular in contacts['celular']:
             for email in contacts['email']:
                 cursor.execute('''
-                INSERT INTO contacts (site, celular, email, city) VALUES (?, ?, ?, ?)
-                ''', (contacts['site'], celular, email, city))
+                INSERT INTO contacts (site, celular, email, city, mensagens_enviadas) VALUES (?, ?, ?, ?, ?)
+                ''', (contacts['site'], celular, email, city, 0))
     
     conn.commit()
     conn.close()
@@ -52,6 +53,17 @@ def fetch_all_contacts(db_path):
     rows = cursor.fetchall()
     conn.close()
     return rows
+
+def update_message_count(db_path, contact_id):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute('''
+    UPDATE contacts
+    SET mensagens_enviadas = mensagens_enviadas + 1
+    WHERE id = ?
+    ''', (contact_id,))
+    conn.commit()
+    conn.close()
 
 def main():
     # Cria a pasta data se não existir
@@ -89,9 +101,8 @@ def main():
         contacts = fetch_all_contacts(db_path)
 
         if contacts:
-            df = pd.DataFrame(contacts, columns=["ID", "Site", "Celular", "Email", "Cidade"])
+            df = pd.DataFrame(contacts, columns=["ID", "Site", "Celular", "Email", "Cidade", "Mensagens Enviadas"])
             df['Selecionar'] = False
-            df = df.drop(columns=["ID"])
 
             config = {
                 "Selecionar": st.column_config.CheckboxColumn(
@@ -107,8 +118,7 @@ def main():
                 selected_contacts = edited_df[edited_df['Selecionar']].to_dict(orient='records')
                 for contact in selected_contacts:
                     st.write(f"Enviando mensagem para {contact['Email']} e {contact['Celular']}")
-                    # Lógica para enviar mensagem
-
+                    update_message_count(db_path, contact['ID'])
         else:
             st.write("Sem contatos até o momento.")
 
