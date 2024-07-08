@@ -90,7 +90,25 @@ def main():
 
         if contacts:
             df = pd.DataFrame(contacts, columns=["ID", "Site", "Celular", "Email", "Cidade"])
-            st.dataframe(df)
+            df['Selecionar'] = False
+            df = df.drop(columns=["ID"])
+
+            config = {
+                "Selecionar": st.column_config.CheckboxColumn(
+                    "Selecionar",
+                    help="Selecione as linhas para enviar mensagem",
+                    default=False
+                )
+            }
+
+            edited_df = st.data_editor(df, column_config=config, hide_index=True)
+
+            if st.button("Disparar Mensagem"):
+                selected_contacts = edited_df[edited_df['Selecionar']].to_dict(orient='records')
+                for contact in selected_contacts:
+                    st.write(f"Enviando mensagem para {contact['Email']} e {contact['Celular']}")
+                    # Lógica para enviar mensagem
+
         else:
             st.write("Sem contatos até o momento.")
 
