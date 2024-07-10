@@ -26,9 +26,15 @@ def auto_send_page():
     import auto_send
     auto_send.run()
 
+def define_message_page():
+    import define_message
+    define_message.run()
+
+
 pg = st.navigation([
     st.Page(search_contacts_page, title="Buscar Contatos", icon="🔍"),
     st.Page(contacts_table_page, title="Tabela de Busca", icon="📋"),
-    st.Page(auto_send_page, title="Envio Automático", icon="⚡")
+    st.Page(auto_send_page, title="Envio Automático", icon="⚡"),
+    st.Page(define_message_page, title="Definir Mensagens", icon="✉️")
 ])
 pg.run()
