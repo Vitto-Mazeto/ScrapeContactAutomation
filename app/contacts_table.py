@@ -37,14 +37,6 @@ def run():
     if 'df' not in st.session_state:
         st.session_state.df = df
 
-    # Botão para selecionar todos os contatos
-    if st.button("Selecionar Todos"):
-        st.session_state.df['Selecionar'] = True
-
-    # Botão para selecionar todos os contatos sem mensagens enviadas
-    if st.button("Selecionar Todos Sem Mensagens Enviadas"):
-        st.session_state.df['Selecionar'] = st.session_state.df['Mensagens Enviadas'] == 0
-
     config = {
         "Selecionar": st.column_config.CheckboxColumn(
             "Selecionar",
@@ -53,10 +45,24 @@ def run():
         )
     }
 
-    edited_df = st.data_editor(st.session_state.df, column_config=config, hide_index=True)
+    st.data_editor(st.session_state.df, column_config=config, hide_index=True)
 
-    if st.button("Disparar Mensagem"):
-        selected_contacts = edited_df[edited_df['Selecionar']].to_dict(orient='records')
+    # Cria colunas para os botões
+    col1, col2, col3 = st.columns(3)
+
+    # Botões de seleção e desseleção
+    with col1:
+        if st.button("Selecionar Todos"):
+            st.session_state.df['Selecionar'] = True
+    with col2:
+        if st.button("Selecionar sem Mensagens"):
+            st.session_state.df['Selecionar'] = st.session_state.df['Mensagens Enviadas'] == 0
+    with col3:
+        if st.button("Desselecionar Todos"):
+            st.session_state.df['Selecionar'] = False
+
+    if st.button("Disparar Mensagens"):
+        selected_contacts = st.session_state.df[st.session_state.df['Selecionar']].to_dict(orient='records')
         if not selected_contacts:
             st.write("Nenhum contato selecionado.")
         else:
