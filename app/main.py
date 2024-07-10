@@ -12,6 +12,8 @@ if not os.path.exists('data'):
 # Cria o banco de dados se não existir
 create_database(db_path)
 
+st.set_page_config(layout="wide")
+
 def search_contacts_page():
     import search_contacts
     search_contacts.run()

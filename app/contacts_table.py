@@ -18,6 +18,13 @@ def run():
     df = pd.DataFrame(contacts, columns=["ID", "Site", "Celular", "Email", "Cidade", "Mensagens Enviadas"])
     df['Selecionar'] = False
 
+    # Oculta a coluna de ID
+    df = df.drop(columns=["ID"])
+
+    # Reordena as colunas para colocar 'Selecionar' à esquerda
+    cols = ['Selecionar'] + [col for col in df.columns if col != 'Selecionar']
+    df = df[cols]
+
     # Dropdown para selecionar cidade
     cities = df['Cidade'].unique().tolist()
     selected_city = st.selectbox("Selecione a cidade", options=["Todas"] + cities)
