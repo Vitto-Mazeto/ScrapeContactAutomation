@@ -36,7 +36,11 @@ def run():
     # Inicializa uma sessão de estado para o DataFrame
     if 'df' not in st.session_state:
         st.session_state.df = df
+    else:
+        # Atualiza o DataFrame com base nas alterações feitas no data_editor
+        st.session_state.df = st.session_state.df.astype(df.dtypes)
 
+    # Exibe o data_editor
     config = {
         "Selecionar": st.column_config.CheckboxColumn(
             "Selecionar",
@@ -44,8 +48,11 @@ def run():
             default=False
         )
     }
+    
+    edited_df = st.data_editor(st.session_state.df, column_config=config, hide_index=True)
 
-    st.data_editor(st.session_state.df, column_config=config, hide_index=True)
+    # Atualiza o DataFrame na sessão de estado com as alterações feitas pelo usuário
+    st.session_state.df = edited_df
 
     # Cria colunas para os botões
     col1, col2, col3 = st.columns(3)
