@@ -25,6 +25,10 @@ def run():
     cols = ['Selecionar'] + [col for col in df.columns if col != 'Selecionar']
     df = df[cols]
 
+    # Inicializa uma sessão de estado para o DataFrame
+    if 'df' not in st.session_state:
+        st.session_state.df = df.copy()
+    
     # Dropdown para selecionar cidade
     cities = df['Cidade'].unique().tolist()
     selected_city = st.selectbox("Selecione a cidade", options=["Todas"] + cities)
@@ -32,27 +36,8 @@ def run():
     # Filtra os contatos com base na cidade selecionada
     if selected_city != "Todas":
         df = df[df['Cidade'] == selected_city]
-
-    # Inicializa uma sessão de estado para o DataFrame
-    if 'df' not in st.session_state:
-        st.session_state.df = df
-    else:
-        # Atualiza o DataFrame com base nas alterações feitas no data_editor
-        st.session_state.df = st.session_state.df.astype(df.dtypes)
-
-    # Exibe o data_editor
-    config = {
-        "Selecionar": st.column_config.CheckboxColumn(
-            "Selecionar",
-            help="Selecione as linhas para enviar mensagem",
-            default=False
-        )
-    }
     
-    edited_df = st.data_editor(st.session_state.df, column_config=config, hide_index=True)
-
-    # Atualiza o DataFrame na sessão de estado com as alterações feitas pelo usuário
-    st.session_state.df = edited_df
+    st.session_state.df = df  # Atualiza o DataFrame na sessão de estado
 
     # Cria colunas para os botões
     col1, col2, col3 = st.columns(3)
@@ -68,6 +53,21 @@ def run():
         if st.button("Desselecionar Todos"):
             st.session_state.df['Selecionar'] = False
 
+    # Exibe o data_editor
+    config = {
+        "Selecionar": st.column_config.CheckboxColumn(
+            "Selecionar",
+            help="Selecione as linhas para enviar mensagem",
+            default=False
+        )
+    }
+    
+    edited_df = st.data_editor(st.session_state.df, column_config=config, hide_index=True)
+
+    # Atualiza o DataFrame na sessão de estado com as alterações feitas pelo usuário
+    st.session_state.df.update(edited_df)
+
+    # Atualiza o DataFrame com base nas seleções feitas pelos botões
     if st.button("Disparar Mensagens"):
         selected_contacts = st.session_state.df[st.session_state.df['Selecionar']].to_dict(orient='records')
         if not selected_contacts:
@@ -76,3 +76,6 @@ def run():
             for contact in selected_contacts:
                 st.write(f"Enviando mensagem para {contact['Email']} e {contact['Celular']}")
                 update_message_count(db_path, contact['Site'])
+
+if __name__ == "__main__":
+    run()
