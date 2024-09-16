@@ -40,9 +40,10 @@ def fetch_contacts(url):
 
 if __name__ == "__main__":
     urls = ['https://cortezeimoveis.com.br/', 'https://ribeiroimoveis.com.br/', 'https://www.maiaimoveissjp.com.br/', 'https://venturiimoveis.com.br/', 'https://www.roccoimoveis.com.br/', 'https://alegriaimobiliaria.com.br/', 'https://www.suelifernandes.com/', 'https://www.freitasgodoi.com.br/imoveis/a-venda/terreno/curitiba']
+    url_sem_contato = ['https://www.silverioimobiliaria.com.br/imoveis/a-venda/terreno/sao-jose-dos-campos']
     contacts_list = []
 
-    for url in urls:
+    for url in url_sem_contato:
         contacts = fetch_contacts(url)
         contacts_list.append(contacts)
     
