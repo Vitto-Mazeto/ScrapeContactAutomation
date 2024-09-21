@@ -30,11 +30,16 @@ def define_message_page():
     import define_message
     define_message.run()
 
+def api_config():
+    import api_config
+    api_config.run()
+
 
 pg = st.navigation([
     st.Page(search_contacts_page, title="Buscar Contatos", icon="🔍"),
     st.Page(contacts_table_page, title="Tabela de Busca", icon="📋"),
     st.Page(auto_send_page, title="Envio Automático", icon="⚡"),
-    st.Page(define_message_page, title="Definir Mensagens", icon="✉️")
+    st.Page(define_message_page, title="Definir Mensagens", icon="✉️"),
+    st.Page(api_config, title="Configuração da API", icon="⚙️")
 ])
 pg.run()

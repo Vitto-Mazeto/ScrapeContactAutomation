@@ -3,6 +3,8 @@ import sqlite3
 def create_database(db_path):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
+
+    # Criação da tabela 'contacts'
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS contacts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -13,6 +15,8 @@ def create_database(db_path):
         mensagens_enviadas INTEGER DEFAULT 0
     )
     ''')
+
+    # Criação da tabela 'messages'
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS messages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,6 +24,17 @@ def create_database(db_path):
         email_message TEXT
     )
     ''')
+
+    # Criação da tabela 'zapi_config'
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS zapi_config (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        instance_id TEXT,
+        token TEXT,
+        api_url TEXT
+    )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -88,3 +103,41 @@ def fetch_messages(db_path):
     row = cursor.fetchone()
     conn.close()
     return row if row else ("", "")
+
+# Função para salvar dados da API no banco de dados
+def save_api_data(db_path, instance_id, token, api_url):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # Cria a tabela caso ela não exista
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS zapi_config (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        instance_id TEXT,
+        token TEXT,
+        api_url TEXT
+    )
+    ''')
+
+    # Deleta os dados existentes e insere os novos
+    cursor.execute('''
+    DELETE FROM zapi_config
+    ''')
+    cursor.execute('''
+    INSERT INTO zapi_config (instance_id, token, api_url) 
+    VALUES (?, ?, ?)
+    ''', (instance_id, token, api_url))
+    
+    conn.commit()
+    conn.close()
+
+# Função para buscar os dados da API no banco de dados
+def fetch_api_data(db_path):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT instance_id, token, api_url FROM zapi_config ORDER BY id DESC LIMIT 1
+    ''')
+    row = cursor.fetchone()
+    conn.close()
+    return row if row else ("", "", "")
