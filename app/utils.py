@@ -23,19 +23,30 @@ def create_database(db_path):
     conn.commit()
     conn.close()
 
+def contact_exists(cursor, celular, email):
+    cursor.execute('''
+    SELECT 1 FROM contacts WHERE celular = ? OR email = ?
+    ''', (celular, email))
+    return cursor.fetchone() is not None
+
 def save_contacts_to_db(db_path, contacts_list, city):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
+    new_contacts = 0
     
     for contacts in contacts_list:
         for celular in contacts['celular']:
             for email in contacts['email']:
-                cursor.execute('''
-                INSERT INTO contacts (site, celular, email, city, mensagens_enviadas) VALUES (?, ?, ?, ?, ?)
-                ''', (contacts['site'], celular, email, city, 0))
+                # Verifica se o contato já existe
+                if not contact_exists(cursor, celular, email):
+                    cursor.execute('''
+                    INSERT INTO contacts (site, celular, email, city, mensagens_enviadas) VALUES (?, ?, ?, ?, ?)
+                    ''', (contacts['site'], celular, email, city, 0))
+                    new_contacts += 1  # Conta como novo contato adicionado
     
     conn.commit()
     conn.close()
+    return new_contacts
 
 def fetch_all_contacts(db_path):
     conn = sqlite3.connect(db_path)

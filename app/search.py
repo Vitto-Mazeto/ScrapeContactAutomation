@@ -5,12 +5,13 @@ import random
 
 from scraper import fetch_contacts
 
-def google_search(query, num_results):
+def google_search(query, num_results, start=0):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
     search_results = []
-    url = f"https://www.google.com/search?q={query}&num={num_results}"
+    # Adicionando o parâmetro `start` para controlar o offset dos resultados de pesquisa
+    url = f"https://www.google.com/search?q={query}&num={num_results}&start={start}"
 
     response = requests.get(url, headers=headers)
     response.raise_for_status()
