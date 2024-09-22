@@ -4,7 +4,7 @@ import sqlite3
 import os
 
 from zapi import send_whats_message
-from utils import fetch_all_contacts, fetch_api_data, fetch_messages, update_message_count
+from utils import delete_all_contacts, fetch_all_contacts, fetch_api_data, fetch_messages, update_message_count
 
 def run():
     st.header("Contatos")
@@ -106,6 +106,11 @@ def run():
                     update_message_count(db_path, site)
                 else:
                     st.error(f"Falha ao enviar mensagem para {phone}: {response}")
+    if st.button("Limpar Contatos"):
+        delete_all_contacts(db_path)
+        st.success("Todos os contatos foram deletados.")
+        # Atualiza a lista de contatos após a exclusão
+        contacts = fetch_all_contacts(db_path)
 
 if __name__ == "__main__":
     run()
