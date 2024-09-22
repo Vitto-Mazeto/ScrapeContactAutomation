@@ -3,7 +3,8 @@ import pandas as pd
 import sqlite3
 import os
 
-from utils import fetch_all_contacts, update_message_count
+from zapi import send_whats_message
+from utils import fetch_all_contacts, fetch_api_data, fetch_messages, update_message_count
 
 def run():
     st.header("Contatos")
@@ -73,9 +74,38 @@ def run():
         if not selected_contacts:
             st.write("Nenhum contato selecionado.")
         else:
+            # Buscar os dados da API e a mensagem pré-salva
+            instance_id, token, _ = fetch_api_data(db_path)
+            whatsapp_message, _ = fetch_messages(db_path)
+
+            # Verifica se todos os dados estão presentes
+            missing_info = []
+            if not instance_id:
+                missing_info.append("Instance ID")
+            if not token:
+                missing_info.append("Token")
+            if not whatsapp_message:
+                missing_info.append("Mensagem do WhatsApp")
+
+            if missing_info:
+                st.error(f"Faltando: {', '.join(missing_info)}. Verifique as configurações.")
+                return
+
             for contact in selected_contacts:
-                st.write(f"Enviando mensagem para {contact['Email']} e {contact['Celular']}")
-                update_message_count(db_path, contact['Site'])
+                phone = contact['Celular']
+                email = contact['Email']
+                site = contact['Site']
+                
+                st.write(f"Enviando mensagem para {email} e {phone}")
+                
+                # Enviar mensagem usando Z-API
+                status_code, response = send_whats_message(instance_id, token, phone, whatsapp_message)
+                
+                if status_code == 200:
+                    st.success(f"Mensagem enviada para {phone}")
+                    update_message_count(db_path, site)
+                else:
+                    st.error(f"Falha ao enviar mensagem para {phone}: {response}")
 
 if __name__ == "__main__":
     run()
