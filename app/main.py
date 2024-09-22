@@ -38,8 +38,13 @@ def import_contacts_page():
     import import_contacts
     import_contacts.run()
 
+def manual_page():
+    import manual
+    manual.run()
+
 
 pg = st.navigation([
+    st.Page(manual_page, title="Manual", icon="📖"),
     st.Page(search_contacts_page, title="Buscar Contatos", icon="🔍"),
     st.Page(contacts_table_page, title="Contatos", icon="📋"),
     st.Page(auto_send_page, title="Envio Automático", icon="⚡"),
