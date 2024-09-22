@@ -102,6 +102,13 @@ def update_message_count(db_path, site):
     conn.commit()
     conn.close()
 
+def delete_all_contacts(db_path):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM contacts")
+    conn.commit()
+    conn.close()
+
 def save_messages(db_path, whatsapp_message, email_message):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
