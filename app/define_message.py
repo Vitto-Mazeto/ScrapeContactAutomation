@@ -15,10 +15,10 @@ def run():
 
     # Campos de texto para definir mensagens
     whatsapp_message_input = st.text_area("Mensagem de WhatsApp 💬", value=whatsapp_message)
-    email_message_input = st.text_area("Mensagem de Email ✉️", value=email_message)
+    # email_message_input = st.text_area("Mensagem de Email ✉️", value=email_message)
 
     if st.button("Salvar Mensagens"):
-        save_messages(db_path, whatsapp_message_input, email_message_input)
+        save_messages(db_path, whatsapp_message_input)
         st.success("Mensagens salvas com sucesso!")
 
 if __name__ == "__main__":
