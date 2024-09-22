@@ -12,7 +12,6 @@ def run():
     st.header("Configuração da API Z-API")
 
     # Exibe o tutorial explicativo
-    st.subheader("Tutorial para Configuração da API do WhatsApp")
     st.write("""
     Siga os passos abaixo para configurar sua conexão com a API da Z-API:
     1. Acesse o site da [Z-API](https://z-api.io/) e crie uma conta.
