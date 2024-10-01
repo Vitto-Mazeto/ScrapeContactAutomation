@@ -63,6 +63,14 @@ def save_contacts_to_db(db_path, contacts_list, city):
     conn.close()
     return new_contacts
 
+def get_current_links(db_path):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT site FROM contacts")
+    rows = cursor.fetchall()
+    conn.close()
+    return [row[0] for row in rows]
+
 def import_contacts_from_csv(db_path, contacts_list):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
