@@ -25,6 +25,7 @@ def run():
             contacts_list = []
 
             for url in urls:
+                print('Fetching contacts from:', url)
                 contacts = fetch_contacts(url)
                 contacts_list.append(contacts)
 
