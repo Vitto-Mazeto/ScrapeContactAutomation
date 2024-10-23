@@ -53,22 +53,33 @@ def contact_exists(cursor, celular, email):
     return cursor.fetchone() is not None
 
 def save_contacts_to_db(db_path, contacts_list, city):
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
+    print(f"Salvando os seguintes contatos no banco de dados: {contacts_list}")
     new_contacts = 0
-    
-    for contacts in contacts_list:
-        for celular in contacts['celular']:
-            for email in contacts['email']:
-                # Verifica se o contato já existe
-                if not contact_exists(cursor, celular, email):
-                    cursor.execute('''
-                    INSERT INTO contacts (site, celular, email, city, mensagens_enviadas) VALUES (?, ?, ?, ?, ?)
-                    ''', (contacts['site'], celular, email, city, 0))
-                    new_contacts += 1  # Conta como novo contato adicionado
-    
-    conn.commit()
-    conn.close()
+
+    # Lista para armazenar os valores dos contatos que serão inseridos em lote
+    batch_values = []
+
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+
+        # Itera sobre os contatos
+        for contact in contacts_list:
+            # Para cada celular do contato
+            for celular in contact['celular']:
+                # Verifica se há emails disponíveis; se não, utiliza string vazia
+                email = contact['email'][0] if contact['email'] else ""
+                
+                # Adiciona uma nova linha na lista de batch_values com os dados a serem inseridos
+                batch_values.append((contact['site'], celular, email, city, 0))
+                new_contacts += 1
+
+        # Se houver valores a inserir, faça o batch insert
+        if batch_values:
+            cursor.executemany(''' 
+                INSERT INTO contacts (site, celular, email, city, mensagens_enviadas) 
+                VALUES (?, ?, ?, ?, ?)
+            ''', batch_values)
+    print(f"{new_contacts} novos contatos adicionados no banco.")
     return new_contacts
 
 def get_current_links(db_path):
