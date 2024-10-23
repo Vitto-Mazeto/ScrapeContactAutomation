@@ -1,18 +1,36 @@
+from base64 import b64decode
 import requests
 from bs4 import BeautifulSoup
 import re
 
-def fetch_contacts(url):
+def fetch_contacts(url, zyte_token):
     try:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
+        print(f"Extraindo contatos de: {url}")
+        api_response = requests.post(
+            "https://api.zyte.com/v1/extract",
+            auth=(zyte_token, ""),
+            json={
+                "url": url,
+                "httpResponseBody": True,
+            },
+        )
+        api_response.raise_for_status()
+        http_response_body = b64decode(api_response.json()["httpResponseBody"])
+        try:
+            html_content = http_response_body.decode("utf-8")
+        except UnicodeDecodeError:
+            print(f"Erro ao decodificar o corpo da resposta como UTF-8 para {url}")
+            return {
+                'site': url,
+                'celular': [],
+                'email': []
+            }
+        soup = BeautifulSoup(html_content, 'html.parser')
 
-        soup = BeautifulSoup(response.text, 'html.parser')
-
-        text_elements = soup.find_all(text=True)
+        text_elements = soup.find_all(string=True)
         text = ' '.join(text_elements)
         
         email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
@@ -24,6 +42,7 @@ def fetch_contacts(url):
         # Remover duplicatas
         emails = list(set(emails))
         cellphones = list(set(cellphones))
+        print(f"Contatos extraídos de {url}: {emails}, {cellphones}")
 
         return {
             'site': url,
@@ -43,8 +62,8 @@ if __name__ == "__main__":
     url_sem_contato = ['https://www.silverioimobiliaria.com.br/imoveis/a-venda/terreno/sao-jose-dos-campos']
     contacts_list = []
 
-    for url in url_sem_contato:
-        contacts = fetch_contacts(url)
+    for url in urls:
+        contacts = fetch_contacts(url, '4b72557563ae432f93a4973ec1edcf54')
         contacts_list.append(contacts)
     
     for contacts in contacts_list:

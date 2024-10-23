@@ -35,6 +35,14 @@ def create_database(db_path):
     )
     ''')
 
+    # Criação da tabela 'zyte_config'
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS zyte_config (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        token TEXT
+    )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -176,3 +184,39 @@ def fetch_api_data(db_path):
     row = cursor.fetchone()
     conn.close()
     return row if row else ("", "", "")
+
+# Função para salvar o token da Zyte API no banco de dados
+def save_zyte_token(db_path, token):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # Cria a tabela caso ela não exista
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS zyte_config (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        token TEXT
+    )
+    ''')
+
+    # Deleta os dados existentes e insere o novo token
+    cursor.execute('''
+    DELETE FROM zyte_config
+    ''')
+    cursor.execute('''
+    INSERT INTO zyte_config (token) 
+    VALUES (?)
+    ''', (token,))
+    
+    conn.commit()
+    conn.close()
+
+# Função para buscar o token da Zyte API no banco de dados
+def fetch_zyte_token(db_path):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT token FROM zyte_config ORDER BY id DESC LIMIT 1
+    ''')
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row else ""
