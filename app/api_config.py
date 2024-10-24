@@ -13,6 +13,7 @@ def run():
 
     # Exibe o tutorial explicativo para a Z-API
     st.write("""
+    ### Configuração da Z-API
     Siga os passos abaixo para configurar sua conexão com a API da Z-API:
     1. Acesse o site da [Z-API](https://z-api.io/) e crie uma conta.
     2. Após criar a conta, crie uma instância ou use a instância padrão.
@@ -29,6 +30,16 @@ def run():
     instance_id_input = st.text_input("ID da Instância Z-API", value=instance_id)
     token_input = st.text_input("Token da Instância Z-API", value=token, type="password")
     api_url_input = st.text_input("URL da API Z-API", value=api_url)
+
+    st.write("""
+    ### Configuração da Zyte API
+    Siga os passos abaixo para configurar o token da Zyte API:
+    1. Acesse o site da [Zyte](https://app.zyte.com/) e crie uma conta.
+    2. Na barra lateral expanda o menu Zyte API.
+    3. Clique em API Access e copie o API key.
+    4. Copie o token gerado e insira-o no campo abaixo.
+    5. Clique em **Salvar** para gravar o token no sistema.
+    """)
 
     # Carrega o token da Zyte API do banco de dados
     zyte_token = fetch_zyte_token(db_path)

@@ -26,6 +26,9 @@ def run():
             processed_urls = set(existing_links)
 
             zyte_token = fetch_zyte_token(db_path)
+            if not zyte_token:
+                st.warning("Token da Zyte API não configurado. Configure o token na página Configuração da API antes de continuar.")
+                return
             
             progress_bar = st.progress(0)  # Barra de progresso
             status_message = st.empty()  # Espaço para mensagens de status
