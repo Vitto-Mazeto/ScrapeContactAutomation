@@ -35,6 +35,14 @@ def create_database(db_path):
     )
     ''')
 
+    # Criação da tabela 'zyte_config'
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS zyte_config (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        token TEXT
+    )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -45,22 +53,33 @@ def contact_exists(cursor, celular, email):
     return cursor.fetchone() is not None
 
 def save_contacts_to_db(db_path, contacts_list, city):
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
+    print(f"Salvando os seguintes contatos no banco de dados: {contacts_list}")
     new_contacts = 0
-    
-    for contacts in contacts_list:
-        for celular in contacts['celular']:
-            for email in contacts['email']:
-                # Verifica se o contato já existe
-                if not contact_exists(cursor, celular, email):
-                    cursor.execute('''
-                    INSERT INTO contacts (site, celular, email, city, mensagens_enviadas) VALUES (?, ?, ?, ?, ?)
-                    ''', (contacts['site'], celular, email, city, 0))
-                    new_contacts += 1  # Conta como novo contato adicionado
-    
-    conn.commit()
-    conn.close()
+
+    # Lista para armazenar os valores dos contatos que serão inseridos em lote
+    batch_values = []
+
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+
+        # Itera sobre os contatos
+        for contact in contacts_list:
+            # Para cada celular do contato
+            for celular in contact['celular']:
+                # Verifica se há emails disponíveis; se não, utiliza string vazia
+                email = contact['email'][0] if contact['email'] else ""
+                
+                # Adiciona uma nova linha na lista de batch_values com os dados a serem inseridos
+                batch_values.append((contact['site'], celular, email, city, 0))
+                new_contacts += 1
+
+        # Se houver valores a inserir, faça o batch insert
+        if batch_values:
+            cursor.executemany(''' 
+                INSERT INTO contacts (site, celular, email, city, mensagens_enviadas) 
+                VALUES (?, ?, ?, ?, ?)
+            ''', batch_values)
+    print(f"{new_contacts} novos contatos adicionados no banco.")
     return new_contacts
 
 def get_current_links(db_path):
@@ -99,14 +118,14 @@ def fetch_all_contacts(db_path):
     conn.close()
     return rows
 
-def update_message_count(db_path, site):
+def update_message_count(db_path, phone):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute('''
     UPDATE contacts
     SET mensagens_enviadas = mensagens_enviadas + 1
-    WHERE site = ?
-    ''', (site,))
+    WHERE celular = ?
+    ''', (phone,))
     conn.commit()
     conn.close()
 
@@ -176,3 +195,39 @@ def fetch_api_data(db_path):
     row = cursor.fetchone()
     conn.close()
     return row if row else ("", "", "")
+
+# Função para salvar o token da Zyte API no banco de dados
+def save_zyte_token(db_path, token):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # Cria a tabela caso ela não exista
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS zyte_config (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        token TEXT
+    )
+    ''')
+
+    # Deleta os dados existentes e insere o novo token
+    cursor.execute('''
+    DELETE FROM zyte_config
+    ''')
+    cursor.execute('''
+    INSERT INTO zyte_config (token) 
+    VALUES (?)
+    ''', (token,))
+    
+    conn.commit()
+    conn.close()
+
+# Função para buscar o token da Zyte API no banco de dados
+def fetch_zyte_token(db_path):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT token FROM zyte_config ORDER BY id DESC LIMIT 1
+    ''')
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row else ""

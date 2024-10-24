@@ -47,7 +47,7 @@ pg = st.navigation([
     st.Page(manual_page, title="Manual", icon="📖"),
     st.Page(search_contacts_page, title="Buscar Contatos", icon="🔍"),
     st.Page(contacts_table_page, title="Contatos", icon="📋"),
-    st.Page(auto_send_page, title="Envio Automático", icon="⚡"),
+    # st.Page(auto_send_page, title="Envio Automático", icon="⚡"),
     st.Page(define_message_page, title="Definir Mensagens", icon="✉️"),
     st.Page(import_contacts_page, title="Importar Contatos", icon="📥"),
     st.Page(api_config, title="Configuração da API", icon="⚙️")
