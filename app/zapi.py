@@ -13,7 +13,7 @@ def format_phone_number(phone):
     return phone
 
 # Função para enviar mensagem via Z-API
-def send_whats_message(instance_id, token, phone, message):
+def send_whats_message(instance_id, token, phone, message, client_token):
     # Formata o número do telefone
     formatted_phone = format_phone_number(phone)
     
@@ -26,8 +26,13 @@ def send_whats_message(instance_id, token, phone, message):
         "message": message
     }
     
+    # Cabeçalhos da requisição, incluindo o Client-Token
+    headers = {
+        "Client-Token": client_token
+    }
+    
     # Realiza a requisição POST para enviar a mensagem
-    response = requests.post(api_url, json=payload)
+    response = requests.post(api_url, json=payload, headers=headers)
     
     # Verifica o status da resposta
     if response.status_code == 200:

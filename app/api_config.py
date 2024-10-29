@@ -1,8 +1,7 @@
 import streamlit as st
 import os
-
-from utils import fetch_api_data, save_api_data
-from utils import fetch_zyte_token, save_zyte_token  # Funções para o Zyte Token
+import sqlite3
+from utils import fetch_api_data, save_api_data, fetch_zyte_token, save_zyte_token
 
 # Caminho do banco de dados
 db_path = os.path.join('data', 'contacts.sqlite')
@@ -24,12 +23,13 @@ def run():
     """)
 
     # Carrega as informações da API Z-API do banco de dados
-    instance_id, token, api_url = fetch_api_data(db_path)
+    instance_id, token, api_url, client_token = fetch_api_data(db_path)
 
     # Campos de entrada para os dados da API Z-API
     instance_id_input = st.text_input("ID da Instância Z-API", value=instance_id)
     token_input = st.text_input("Token da Instância Z-API", value=token, type="password")
     api_url_input = st.text_input("URL da API Z-API", value=api_url)
+    client_token_input = st.text_input("Client-Token da Z-API", value=client_token, type="password")
 
     st.write("""
     ### Configuração da Zyte API
@@ -50,7 +50,7 @@ def run():
     # Botão para salvar as configurações da Z-API e Zyte
     if st.button("Salvar Configurações"):
         # Salva os dados da Z-API
-        save_api_data(db_path, instance_id_input, token_input, api_url_input)
+        save_api_data(db_path, instance_id_input, token_input, api_url_input, client_token_input)
         # Salva o token da Zyte API
         save_zyte_token(db_path, zyte_token_input)
         st.success("Configurações salvas com sucesso!")

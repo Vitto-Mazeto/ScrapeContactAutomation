@@ -6,7 +6,7 @@ from zapi import send_whats_message
 from utils import delete_all_contacts, fetch_all_contacts, fetch_api_data, fetch_messages, update_message_count
 
 def send_messages(contacts, db_path):
-    instance_id, token, _ = fetch_api_data(db_path)
+    instance_id, token, api_url, client_token = fetch_api_data(db_path)
     whatsapp_message, _ = fetch_messages(db_path)
 
     missing_info = []
@@ -28,7 +28,7 @@ def send_messages(contacts, db_path):
     for phone in unique_phones:
         st.write(f"Enviando mensagem para {phone}")
         
-        status_code, response = send_whats_message(instance_id, token, phone, whatsapp_message)
+        status_code, response = send_whats_message(instance_id, token, phone, whatsapp_message, client_token)
         
         if status_code == 200:
             st.success(f"Mensagem enviada para {phone}")
