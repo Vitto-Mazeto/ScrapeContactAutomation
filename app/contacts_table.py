@@ -27,14 +27,12 @@ def send_messages(contacts, db_path):
     # Itera sobre o set de telefones únicos e envia as mensagens
     for phone in unique_phones:
         st.write(f"Enviando mensagem para {phone}")
-        update_message_count(db_path, phone)
-        continue
         
         status_code, response = send_whats_message(instance_id, token, phone, whatsapp_message)
         
         if status_code == 200:
             st.success(f"Mensagem enviada para {phone}")
-            update_message_count(db_path, site)
+            update_message_count(db_path, phone)
         else:
             st.error(f"Falha ao enviar mensagem para {phone}: {response}")
 
