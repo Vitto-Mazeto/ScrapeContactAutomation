@@ -31,7 +31,8 @@ def create_database(db_path):
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         instance_id TEXT,
         token TEXT,
-        api_url TEXT
+        api_url TEXT,
+        client_token TEXT
     )
     ''')
 
@@ -159,28 +160,18 @@ def fetch_messages(db_path):
     return row if row else ("", "")
 
 # Função para salvar dados da API no banco de dados
-def save_api_data(db_path, instance_id, token, api_url):
+def save_api_data(db_path, instance_id, token, api_url, client_token):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    # Cria a tabela caso ela não exista
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS zapi_config (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        instance_id TEXT,
-        token TEXT,
-        api_url TEXT
-    )
-    ''')
-
-    # Deleta os dados existentes e insere os novos
+    # Deleta os dados existentes e insere os novos, incluindo o client_token
     cursor.execute('''
     DELETE FROM zapi_config
     ''')
     cursor.execute('''
-    INSERT INTO zapi_config (instance_id, token, api_url) 
-    VALUES (?, ?, ?)
-    ''', (instance_id, token, api_url))
+    INSERT INTO zapi_config (instance_id, token, api_url, client_token) 
+    VALUES (?, ?, ?, ?)
+    ''', (instance_id, token, api_url, client_token))
     
     conn.commit()
     conn.close()
@@ -189,12 +180,14 @@ def save_api_data(db_path, instance_id, token, api_url):
 def fetch_api_data(db_path):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
+    
+    # Busca os dados, incluindo o client_token
     cursor.execute('''
-    SELECT instance_id, token, api_url FROM zapi_config ORDER BY id DESC LIMIT 1
+    SELECT instance_id, token, api_url, client_token FROM zapi_config ORDER BY id DESC LIMIT 1
     ''')
     row = cursor.fetchone()
     conn.close()
-    return row if row else ("", "", "")
+    return row if row else ("", "", "", "")  # Adiciona o client_token na resposta
 
 # Função para salvar o token da Zyte API no banco de dados
 def save_zyte_token(db_path, token):
