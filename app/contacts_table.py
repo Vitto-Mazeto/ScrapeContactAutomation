@@ -21,11 +21,9 @@ def send_messages(contacts, db_path):
         st.error(f"Faltando: {', '.join(missing_info)}. Verifique as configurações.")
         return
 
-    # Cria um set com todos os números de telefone únicos
-    unique_phones = {contact['Celular'] for contact in contacts}
-
-    # Itera sobre o set de telefones únicos e envia as mensagens
-    for phone in unique_phones:
+    # Itera sobre os contatos selecionados e envia as mensagens
+    for contact in contacts:
+        phone = contact['Celular']
         st.write(f"Enviando mensagem para {phone}")
         
         status_code, response = send_whats_message(instance_id, token, phone, whatsapp_message, client_token)
@@ -57,18 +55,41 @@ def run():
     else:
         filtered_df = df.copy()
 
-    st.write(filtered_df)
+    # Adiciona uma coluna de checkbox no início
+    filtered_df.insert(0, 'Selecionar', False)
+    
+    # Cria uma cópia do DataFrame para evitar o aviso do Streamlit
+    edited_df = st.data_editor(
+        filtered_df,
+        hide_index=True,
+        column_config={
+            "Selecionar": st.column_config.CheckboxColumn(
+                "Selecionar",
+                help="Selecione os contatos para enviar mensagem",
+                default=False,
+            )
+        }
+    )
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
-        if st.button("Enviar para Todos"):
-            send_messages(filtered_df.to_dict(orient='records'), db_path)
+        if st.button("Enviar para Selecionados"):
+            selected_contacts = edited_df[edited_df['Selecionar']].drop(columns=['Selecionar'])
+            st.success(f"Enviando mensagem para {len(selected_contacts)} contatos selecionados")
+            if len(selected_contacts) > 0:
+                send_messages(selected_contacts.to_dict(orient='records'), db_path)
+            else:
+                st.warning("Nenhum contato selecionado")
 
     with col2:
+        if st.button("Enviar para Todos"):
+            send_messages(filtered_df.drop(columns=['Selecionar']).to_dict(orient='records'), db_path)
+
+    with col3:
         if st.button("Enviar para Sem Mensagem"):
             contacts_without_messages = filtered_df[filtered_df['Mensagens Enviadas'] == 0]
-            send_messages(contacts_without_messages.to_dict(orient='records'), db_path)
+            send_messages(contacts_without_messages.drop(columns=['Selecionar']).to_dict(orient='records'), db_path)
 
     if st.button("Limpar Contatos"):
         delete_all_contacts(db_path)
