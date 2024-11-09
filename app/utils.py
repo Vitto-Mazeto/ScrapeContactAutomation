@@ -44,8 +44,34 @@ def create_database(db_path):
     )
     ''')
 
+    # Criação da tabela para sites ignorados
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS ignored_sites (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        site TEXT UNIQUE
+    )
+    ''')
+
     conn.commit()
     conn.close()
+
+def save_ignored_sites(db_path, sites):
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+        for site in sites:
+            try:
+                cursor.execute('INSERT OR IGNORE INTO ignored_sites (site) VALUES (?)', (site,))
+            except sqlite3.Error as e:
+                print(f"Erro ao salvar site ignorado: {e}")
+        conn.commit()
+
+def load_ignored_sites(db_path):
+    """Carrega os sites ignorados do banco de dados e retorna como uma string formatada para o campo de entrada."""
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT site FROM ignored_sites")
+        ignored_sites = [row[0] for row in cursor.fetchall()]
+    return ", ".join(ignored_sites)  # Converte a lista em uma string separada por vírgulas
 
 def contact_exists(cursor, celular, email):
     cursor.execute('''

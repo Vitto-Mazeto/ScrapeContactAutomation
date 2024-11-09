@@ -19,9 +19,9 @@ def send_messages(contacts, db_path, max_messages, min_interval, max_interval, i
     if not whatsapp_message:
         missing_info.append("Mensagem do WhatsApp")
 
-    # if missing_info:
-    #     st.error(f"Faltando: {', '.join(missing_info)}. Verifique as configurações.")
-    #     return
+    if missing_info:
+        st.error(f"Faltando: {', '.join(missing_info)}. Verifique as configurações.")
+        return
 
     # Itera sobre os contatos selecionados e envia as mensagens
     for i, contact in enumerate(contacts):
@@ -34,14 +34,14 @@ def send_messages(contacts, db_path, max_messages, min_interval, max_interval, i
         st.write(f"Enviando mensagem para {phone}")
 
         # Envio da mensagem
-        # status_code, response = send_whats_message(instance_id, token, phone, whatsapp_message, client_token)
+        status_code, response = send_whats_message(instance_id, token, phone, whatsapp_message, client_token)
 
-        # # Avaliação do status da mensagem
-        # if status_code == 200:
-        #     st.success(f"Mensagem enviada para {phone}")
-        #     update_message_count(db_path, phone)
-        # else:
-        #     st.error(f"Falha ao enviar mensagem para {phone}: {response}")
+        # Avaliação do status da mensagem
+        if status_code == 200:
+            st.success(f"Mensagem enviada para {phone}")
+            update_message_count(db_path, phone)
+        else:
+            st.error(f"Falha ao enviar mensagem para {phone}: {response}")
         
         # Intervalo entre as mensagens
         if (i + 1) % interval_after == 0:
