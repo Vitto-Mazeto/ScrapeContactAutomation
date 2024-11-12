@@ -20,8 +20,9 @@ def create_database(db_path):
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS messages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        whatsapp_message TEXT,
-        email_message TEXT
+        message_type TEXT,
+        message_text TEXT,
+        is_active INTEGER DEFAULT 1
     )
     ''')
 
@@ -163,27 +164,39 @@ def delete_all_contacts(db_path):
     conn.commit()
     conn.close()
 
-def save_messages(db_path, whatsapp_message, email_message):
+def save_messages(db_path, messages_dict):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
+    
+    # Clear existing WhatsApp messages
     cursor.execute('''
-    DELETE FROM messages
+    DELETE FROM messages WHERE message_type = 'whatsapp'
     ''')
-    cursor.execute('''
-    INSERT INTO messages (whatsapp_message, email_message) VALUES (?, ?)
-    ''', (whatsapp_message, email_message))
+    
+    # Insert new messages
+    for message_text in messages_dict.values():
+        if message_text.strip():  # Only insert non-empty messages
+            cursor.execute('''
+            INSERT INTO messages (message_type, message_text, is_active) 
+            VALUES (?, ?, ?)
+            ''', ('whatsapp', message_text, 1))
+    
     conn.commit()
     conn.close()
 
 def fetch_messages(db_path):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
+    
     cursor.execute('''
-    SELECT whatsapp_message, email_message FROM messages ORDER BY id DESC LIMIT 1
+    SELECT message_text FROM messages 
+    WHERE message_type = 'whatsapp' AND is_active = 1
     ''')
-    row = cursor.fetchone()
+    
+    messages = [row[0] for row in cursor.fetchall()]
     conn.close()
-    return row if row else ("", "")
+    
+    return messages
 
 # Função para salvar dados da API no banco de dados
 def save_api_data(db_path, instance_id, token, api_url, client_token):

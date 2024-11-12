@@ -9,48 +9,52 @@ from utils import delete_all_contacts, fetch_all_contacts, fetch_api_data, fetch
 
 def send_messages(contacts, db_path, max_messages, min_interval, max_interval, interval_after, long_min_interval, long_max_interval):
     instance_id, token, api_url, client_token = fetch_api_data(db_path)
-    whatsapp_message, _ = fetch_messages(db_path)
-
+    whatsapp_messages = fetch_messages(db_path)
+    
+    if not whatsapp_messages:
+        st.error("Nenhuma mensagem de WhatsApp cadastrada. Verifique as configurações.")
+        return
+    
     missing_info = []
     if not instance_id:
         missing_info.append("Instance ID")
     if not token:
         missing_info.append("Token")
-    if not whatsapp_message:
-        missing_info.append("Mensagem do WhatsApp")
-
+    
     if missing_info:
         st.error(f"Faltando: {', '.join(missing_info)}. Verifique as configurações.")
         return
-
-    # Itera sobre os contatos selecionados e envia as mensagens
+    
     for i, contact in enumerate(contacts):
-        # Limite de mensagens
         if i >= max_messages:
             st.warning("Limite de mensagens atingido.")
             break
         
         phone = contact['Celular']
         st.write(f"Enviando mensagem para {phone}")
+        
+        # Randomly select a message from available messages
+        selected_message = random.choice(whatsapp_messages)
 
-        # Envio da mensagem
-        status_code, response = send_whats_message(instance_id, token, phone, whatsapp_message, client_token)
-
-        # Avaliação do status da mensagem
+        print(f"Sending message to {phone}: {selected_message}")
+        
+        # Send the message
+        status_code, response = send_whats_message(instance_id, token, phone, selected_message, client_token)
+        
         if status_code == 200:
             st.success(f"Mensagem enviada para {phone}")
             update_message_count(db_path, phone)
         else:
             st.error(f"Falha ao enviar mensagem para {phone}: {response}")
         
-        # Intervalo entre as mensagens
+        # Handle intervals
         if (i + 1) % interval_after == 0:
             wait_time = random.uniform(long_min_interval, long_max_interval)
             st.write(f"Pausando por {wait_time:.2f} segundos após {interval_after} mensagens.")
         else:
             wait_time = random.uniform(min_interval, max_interval)
             st.write(f"Intervalo entre mensagens: {wait_time:.2f} segundos.")
-
+        
         time.sleep(wait_time)
 
 def run():
