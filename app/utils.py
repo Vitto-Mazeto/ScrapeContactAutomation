@@ -56,12 +56,25 @@ def create_database(db_path):
     conn.commit()
     conn.close()
 
-def save_ignored_sites(db_path, sites):
+def save_ignored_sites(db_path, sites_input):
+    if not sites_input or sites_input.strip() == '':
+        return
+    
+    # Limpa e processa os sites
+    sites = []
+    for site in sites_input.split(','):
+        site = site.strip()
+        if site:  # Só adiciona se não estiver vazio
+            sites.append(site)
+    
     with sqlite3.connect(db_path) as conn:
         cursor = conn.cursor()
+        # Limpa sites antigos
+        cursor.execute('DELETE FROM ignored_sites')
+        # Insere novos sites
         for site in sites:
             try:
-                cursor.execute('INSERT OR IGNORE INTO ignored_sites (site) VALUES (?)', (site,))
+                cursor.execute('INSERT INTO ignored_sites (site) VALUES (?)', (site,))
             except sqlite3.Error as e:
                 print(f"Erro ao salvar site ignorado: {e}")
         conn.commit()
