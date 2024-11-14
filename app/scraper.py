@@ -3,6 +3,8 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
+from zapi import format_phone_number
+
 def fetch_contacts(url, zyte_token):
     print(f"Extraindo contatos de: {url}")
     
@@ -26,6 +28,9 @@ def fetch_contacts(url, zyte_token):
 
         emails = set(re.findall(email_pattern, text))
         cellphones = set(re.findall(cellphone_pattern, text))
+        
+        # Formata os números de celular
+        cellphones = {format_phone_number(phone) for phone in cellphones}
 
         print(f"Contatos extraídos de {url}: Emails: {emails}, Celulares: {cellphones}")
 
