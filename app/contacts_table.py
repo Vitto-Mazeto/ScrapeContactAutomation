@@ -4,7 +4,7 @@ import os
 import random
 import time
 
-from zapi import send_whats_message
+from zapi import send_whats_message, send_whatsapp_message_evolution
 from utils import delete_all_contacts, fetch_all_contacts, fetch_api_data, fetch_messages, update_message_count
 
 def send_messages(contacts, db_path, max_messages, min_interval, max_interval, interval_after, long_min_interval, long_max_interval):
@@ -39,13 +39,14 @@ def send_messages(contacts, db_path, max_messages, min_interval, max_interval, i
         print(f"Sending message to {phone}: {selected_message}")
         
         # Send the message
-        status_code, response = send_whats_message(instance_id, token, phone, selected_message, client_token)
+        # status_code, response = send_whats_message(instance_id, token, phone, selected_message, client_token)
+        response = send_whatsapp_message_evolution(phone, selected_message)
         
-        if status_code == 200:
+        if response:
             st.success(f"Mensagem enviada para {phone}")
             update_message_count(db_path, phone)
         else:
-            st.error(f"Falha ao enviar mensagem para {phone}: {response}")
+            st.error(f"Falha ao enviar mensagem para {phone}")
         
         # Handle intervals
         if (i + 1) % interval_after == 0:
