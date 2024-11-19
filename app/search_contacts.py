@@ -1,14 +1,28 @@
 import streamlit as st
 import os
 import sqlite3
+import concurrent.futures
+import time
 from utils import load_ignored_sites, save_contacts_to_db, get_current_links, fetch_zyte_token, save_ignored_sites
 from scraper import fetch_contacts
 from search import google_search
+
+def fetch_with_timeout(url, zyte_token, timeout=15):
+    """
+    Executa fetch_contacts com um timeout específico
+    """
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(fetch_contacts, url, zyte_token)
+        try:
+            return future.result(timeout=timeout)
+        except concurrent.futures.TimeoutError:
+            return None
 
 def run():
     st.header("Buscar Contatos")
     city = st.text_input("Localização", value="São José dos Campos")
     num_results = st.number_input("Número de Resultados", min_value=1, max_value=1000, value=50)
+    timeout_seconds = st.number_input("Tempo limite por site (segundos)", min_value=1, max_value=60, value=15)
 
     db_path = os.path.join('data', 'contacts.sqlite')
 
@@ -41,6 +55,7 @@ def run():
             progress_bar = st.progress(0)
             status_message = st.empty()
             success_message = st.empty()
+            timeout_message = st.empty()
             
             while urls_processed < num_results:
                 urls = google_search(query, num_results, zyte_token, start=start)
@@ -63,12 +78,22 @@ def run():
                 for url in new_urls:
                     try:
                         status_message.write(f'Extraindo contatos de: {url}')
-                        contacts = fetch_contacts(url, zyte_token)
                         
+                        # Usa a nova função com timeout
+                        start_time = time.time()
+                        contacts = fetch_with_timeout(url, zyte_token, timeout=timeout_seconds)
+                        
+                        if contacts is None:
+                            timeout_message.warning(f"Timeout ao processar: {url} (>= {timeout_seconds}s)")
+                            processed_urls.add(url)
+                            urls_processed += 1
+                            continue
+
                         # Salva o contato imediatamente após a extração
                         if contacts:
                             save_contacts_to_db(db_path, [contacts], city)
-                            success_message.success(f"Contato salvo com sucesso: {url}")
+                            processing_time = time.time() - start_time
+                            success_message.success(f"Contato salvo com sucesso: {url} ({processing_time:.1f}s)")
 
                         processed_urls.add(url)
                         urls_processed += 1
