@@ -4,27 +4,6 @@ import sqlite3
 from utils import load_ignored_sites, save_contacts_to_db, get_current_links, fetch_zyte_token, save_ignored_sites
 from scraper import fetch_contacts
 from search import google_search
-import signal
-from contextlib import contextmanager
-import time
-
-class TimeoutException(Exception):
-    pass
-
-@contextmanager
-def timeout(seconds):
-    def signal_handler(signum, frame):
-        raise TimeoutException("Timeout!")
-    
-    # Registra o handler
-    signal.signal(signal.SIGALRM, signal_handler)
-    signal.alarm(seconds)
-    
-    try:
-        yield
-    finally:
-        # Desativa o alarme
-        signal.alarm(0)
 
 def run():
     st.header("Buscar Contatos")
@@ -40,8 +19,11 @@ def run():
     if st.button("Buscar"):
         try:
             query = f"terrenos imobiliaria {city}"
+
+            # Salva os sites ignorados
             save_ignored_sites(db_path, ignored_sites_input)
 
+            # Processa lista de sites ignorados para filtragem
             ignored_sites = []
             if ignored_sites_input:
                 ignored_sites = [site.strip() for site in ignored_sites_input.split(",") if site.strip()]
@@ -58,6 +40,7 @@ def run():
             
             progress_bar = st.progress(0)
             status_message = st.empty()
+            success_message = st.empty()
             
             while urls_processed < num_results:
                 urls = google_search(query, num_results, zyte_token, start=start)
@@ -67,6 +50,7 @@ def run():
 
                 new_urls = [url for url in urls if url not in processed_urls]
 
+                # Filtra URLs ignoradas
                 if ignored_sites:
                     for ignored_site in ignored_sites:
                         new_urls = [url for url in new_urls if ignored_site not in url]
@@ -77,27 +61,22 @@ def run():
                     continue
 
                 for url in new_urls:
-                    status_message.write(f'Extraindo contatos de: {url}')
-                    
                     try:
-                        # Tenta extrair contatos com timeout de 15 segundos
-                        with timeout(15):
-                            contacts = fetch_contacts(url, zyte_token)
-                            
-                            if contacts:
-                                save_contacts_to_db(db_path, [contacts], city)
-                                st.success(f"✅ {url}")
-                    
-                    except TimeoutException:
-                        st.warning(f"⏱️ Timeout: {url}")
-                        continue
-                    except Exception as e:
-                        st.error(f"❌ Erro: {url}")
-                        continue
+                        status_message.write(f'Extraindo contatos de: {url}')
+                        contacts = fetch_contacts(url, zyte_token)
+                        
+                        # Salva o contato imediatamente após a extração
+                        if contacts:
+                            save_contacts_to_db(db_path, [contacts], city)
+                            success_message.success(f"Contato salvo com sucesso: {url}")
 
-                    processed_urls.add(url)
-                    urls_processed += 1
-                    progress_bar.progress(min(urls_processed / num_results, 1.0))
+                        processed_urls.add(url)
+                        urls_processed += 1
+                        progress_bar.progress(min(urls_processed / num_results, 1.0))
+
+                    except Exception as e:
+                        st.error(f'Erro ao processar URL {url}: {e}')
+                        continue
 
                     if urls_processed >= num_results:
                         break
@@ -105,7 +84,6 @@ def run():
                 start += num_results
 
             st.success(f"Processo finalizado. Total de URLs processadas: {urls_processed}")
-            
         except Exception as e:
             st.error(f"Erro ao buscar contatos: {e}")
 
