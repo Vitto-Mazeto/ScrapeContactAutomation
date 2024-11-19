@@ -28,7 +28,6 @@ def run():
             if ignored_sites_input:
                 ignored_sites = [site.strip() for site in ignored_sites_input.split(",") if site.strip()]
 
-            # Resto do código permanece igual
             existing_links = get_current_links(db_path)
             urls_processed = 0
             start = 0
@@ -41,6 +40,7 @@ def run():
             
             progress_bar = st.progress(0)
             status_message = st.empty()
+            success_message = st.empty()
             
             while urls_processed < num_results:
                 urls = google_search(query, num_results, zyte_token, start=start)
@@ -50,7 +50,7 @@ def run():
 
                 new_urls = [url for url in urls if url not in processed_urls]
 
-                # Filtra URLs ignoradas apenas se houver sites para ignorar
+                # Filtra URLs ignoradas
                 if ignored_sites:
                     for ignored_site in ignored_sites:
                         new_urls = [url for url in new_urls if ignored_site not in url]
@@ -60,27 +60,32 @@ def run():
                     start += num_results
                     continue
 
-                contacts_list = []
-
                 for url in new_urls:
-                    status_message.write(f'Extraindo contatos de: {url}')
-                    contacts = fetch_contacts(url, zyte_token)
-                    contacts_list.append(contacts)
+                    try:
+                        status_message.write(f'Extraindo contatos de: {url}')
+                        contacts = fetch_contacts(url, zyte_token)
+                        
+                        # Salva o contato imediatamente após a extração
+                        if contacts:
+                            save_contacts_to_db(db_path, [contacts], city)
+                            success_message.success(f"Contato salvo com sucesso: {url}")
 
-                    processed_urls.add(url)
-                    urls_processed += 1
-                    progress_bar.progress(min(urls_processed / num_results, 1.0))
+                        processed_urls.add(url)
+                        urls_processed += 1
+                        progress_bar.progress(min(urls_processed / num_results, 1.0))
+
+                    except Exception as e:
+                        st.error(f'Erro ao processar URL {url}: {e}')
+                        continue
 
                     if urls_processed >= num_results:
                         break
 
-                save_contacts_to_db(db_path, contacts_list, city)
-                st.success("Contatos processados e adicionados.")
-
                 start += num_results
+
+            st.success(f"Processo finalizado. Total de URLs processadas: {urls_processed}")
         except Exception as e:
-            st.error(f'Ocorreu um erro: {e}')
-            print('Ocorreu um erro:', e)
+            st.error(f"Erro ao buscar contatos: {e}")
 
 if __name__ == "__main__":
     run()
