@@ -72,6 +72,7 @@ def send_whatsapp_message_evolution(phone: str, message: str) -> bool:
     }
     
     try:
+        print(f"Sending message to {phone}")
         response = requests.post(endpoint, json=payload, headers=headers)
         
         if response.status_code == 200:

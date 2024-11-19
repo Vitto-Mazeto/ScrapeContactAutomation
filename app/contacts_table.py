@@ -30,6 +30,7 @@ def send_messages(contacts, db_path, max_messages, min_interval, max_interval, i
         # Send the message
         # status_code, response = send_whats_message(instance_id, token, phone, selected_message, client_token)
         response = send_whatsapp_message_evolution(phone, selected_message)
+        print(f'Response: {response}')
         
         if response:
             st.success(f"Mensagem enviada para {phone}")
