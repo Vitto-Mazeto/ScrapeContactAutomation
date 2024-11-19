@@ -1,3 +1,4 @@
+import os
 import re
 import requests
 
@@ -41,3 +42,45 @@ def send_whats_message(instance_id, token, phone, message, client_token):
         print(f"Falha ao enviar mensagem para {formatted_phone}. Erro: {response.status_code} - {response.text}")
 
     return response.status_code, response.text
+
+def send_whatsapp_message_evolution(phone: str, message: str) -> bool:
+    """
+    Envia uma mensagem WhatsApp usando a Evolution API.
+    
+    Args:
+        phone: Número do destinatário
+        message: Mensagem a ser enviada
+        
+    Returns:
+        bool: True se a mensagem foi enviada com sucesso, False caso contrário
+    """
+    base_url = os.getenv('EVOLUTION_API_URL')
+    api_key = os.getenv('EVOLUTION_API_KEY')
+    instance_name = os.getenv('EVOLUTION_INSTANCE_NAME', '')
+    
+    endpoint = f"{base_url.rstrip('/')}/message/sendText/{instance_name}"
+    
+    headers = {
+        "Content-Type": "application/json",
+        "apikey": api_key
+    }
+    
+    
+    payload = {
+        "number": phone,
+        "text": message
+    }
+    
+    try:
+        response = requests.post(endpoint, json=payload, headers=headers)
+        
+        if response.status_code == 200:
+            print(f"Message sent successfully to {phone}")
+            return True
+            
+        print(f"Failed to send message to {phone}. Status: {response.status_code}, Response: {response.text}")
+        return False
+        
+    except Exception as e:
+        print(f"Exception while sending message to {phone}: {str(e)}")
+        return False
