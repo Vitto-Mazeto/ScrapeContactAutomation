@@ -8,21 +8,10 @@ from zapi import send_whats_message, send_whatsapp_message_evolution
 from utils import delete_all_contacts, fetch_all_contacts, fetch_api_data, fetch_messages, update_message_count
 
 def send_messages(contacts, db_path, max_messages, min_interval, max_interval, interval_after, long_min_interval, long_max_interval):
-    instance_id, token, api_url, client_token = fetch_api_data(db_path)
     whatsapp_messages = fetch_messages(db_path)
     
     if not whatsapp_messages:
         st.error("Nenhuma mensagem de WhatsApp cadastrada. Verifique as configurações.")
-        return
-    
-    missing_info = []
-    if not instance_id:
-        missing_info.append("Instance ID")
-    if not token:
-        missing_info.append("Token")
-    
-    if missing_info:
-        st.error(f"Faltando: {', '.join(missing_info)}. Verifique as configurações.")
         return
     
     for i, contact in enumerate(contacts):
